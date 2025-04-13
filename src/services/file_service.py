@@ -39,9 +39,9 @@ class AbstractAsyncIO(ABC):
 
 @singleton
 class FileService:
-    _storage: AbstractFileSystem = None
+    _storage: AbstractFileSystem
 
-    _max_file_size: int = None
+    _max_file_size: int = 10
 
     _supported_formats: List[str] = ["*"]
 
