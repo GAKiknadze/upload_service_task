@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from contextlib import asynccontextmanager
 from io import TextIOWrapper
-from mimetypes import guess_extension, guess_type, add_type
+from mimetypes import add_type, guess_extension, guess_type
 from typing import AsyncGenerator, List, Tuple
 from uuid import UUID
 
