@@ -54,12 +54,17 @@ class FileService:
         self._max_file_size = value
 
     def set_supported_formats(self, value: List[str | Tuple[str, str]]) -> None:
+        """
+        Example:
+            value = ["text/text", ("application/custom", ".custom_format")]
+        """
         formats = list()
         for v in value:
             if isinstance(v, Tuple[str, str]):
                 doc_type, doc_ext = v
-                if guess_extension(doc_type) is None:
-                    add_type(doc_ext)
+                saved_type, _ = guess_type(doc_ext)
+                if saved_type is None:
+                    add_type(doc_type, doc_ext)
                     formats.append(doc_type)
             else:
                 formats.append(v)
