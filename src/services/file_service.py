@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
 from contextlib import asynccontextmanager
 from io import TextIOWrapper
-from mimetypes import guess_extension, guess_type
-from typing import AsyncGenerator, List
+from mimetypes import guess_extension, guess_type, add_type
+from typing import AsyncGenerator, List, Tuple
 from uuid import UUID
 
 from fsspec import AbstractFileSystem  # type:ignore[import-untyped]
@@ -53,8 +53,17 @@ class FileService:
     def set_max_file_size(self, value: int) -> None:
         self._max_file_size = value
 
-    def set_supported_formats(self, value: List[str]) -> None:
-        self._supported_formats = value
+    def set_supported_formats(self, value: List[str | Tuple[str, str]]) -> None:
+        formats = list()
+        for v in value:
+            if isinstance(v, Tuple[str, str]):
+                doc_type, doc_ext = v
+                if guess_extension(doc_type) is None:
+                    add_type(doc_ext)
+                    formats.append(doc_type)
+            else:
+                formats.append(v)
+        self._supported_formats = formats
 
     @staticmethod
     def _get_uuid_file_name(file_id: UUID, mime_type: str | None = None) -> str:
@@ -112,6 +121,7 @@ class FileService:
             file_meta.status = FileStatus.ERROR
         else:
             file_meta.status = FileStatus.OK
+            file_meta.internal_name = internal_file_name
         await session.flush([file_meta])
         await session.commit()
         return file_meta
@@ -127,10 +137,7 @@ class FileService:
             FileStatus.BLOCKED,
         ):
             raise FileNotFoundExc(f"File with id `{file_id}`")
-        internal_file_name = self._get_uuid_file_name(
-            file_meta.id, file_meta.content_type
-        )
-        async with self._storage.open(internal_file_name, "rb") as f:
+        async with self._storage.open(file_meta.internal_name, "rb") as f:
             yield f
 
     async def get_info(self, session: AsyncSession, file_id: UUID) -> FileMeta:
@@ -141,8 +148,5 @@ class FileService:
 
     async def delete(self, session: AsyncSession, file_id: UUID) -> None:
         file_meta = await self.get_info(session, file_id)
-        internal_file_name = self._get_uuid_file_name(
-            file_meta.id, file_meta.content_type
-        )
-        await self._storage.rm(internal_file_name)
+        await self._storage.rm(file_meta.internal_name)
         await session.delete(file_meta)

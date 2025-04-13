@@ -32,6 +32,7 @@ class FileMeta(Base):
         String(length=255), nullable=True
     )
     status: Mapped[FileStatus] = mapped_column(SEnum(FileStatus), nullable=False)
+    internal_name: Mapped[str] = mapped_column(String(length=255), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
