@@ -5,3 +5,7 @@ format:
 
 check:
 	mypy .
+
+
+test:
+	pytest tests/ -v --forked

@@ -5,8 +5,8 @@ from mimetypes import guess_extension, guess_type
 from typing import AsyncGenerator, List
 from uuid import UUID
 
-from fsspec import AbstractFileSystem #type:ignore[import-untyped]
-from fsspec.spec import AbstractBufferedFile #type:ignore[import-untyped]
+from fsspec import AbstractFileSystem  # type:ignore[import-untyped]
+from fsspec.spec import AbstractBufferedFile  # type:ignore[import-untyped]
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..exceptions import (
@@ -39,9 +39,9 @@ class AbstractAsyncIO(ABC):
 
 @singleton
 class FileService:
-    _storage: AbstractFileSystem
+    _storage: AbstractFileSystem = None
 
-    _max_file_size: int
+    _max_file_size: int = None
 
     _supported_formats: List[str] = ["*"]
 
@@ -60,7 +60,7 @@ class FileService:
     def _get_uuid_file_name(file_id: UUID, mime_type: str | None = None) -> str:
         if not mime_type:
             return str(file_id)
-        
+
         if mime_type == "application/octet-stream":
             extension = ".bin"
         else:
@@ -119,7 +119,7 @@ class FileService:
     @asynccontextmanager
     async def get_file(
         self, session: AsyncSession, file_id: UUID
-    ) -> AsyncGenerator[TextIOWrapper | AbstractBufferedFile]:
+    ) -> AsyncGenerator[TextIOWrapper | AbstractBufferedFile, None]:
         file_meta = await self.get_info(session, file_id)
         if file_meta.status in (
             FileStatus.UPLOADING,
