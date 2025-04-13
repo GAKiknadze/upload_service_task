@@ -1,0 +1,6 @@
+asyncpg
+fastapi
+fsspec[full]
+python-jose
+python-multipart
+sqlalchemy[asyncio]
